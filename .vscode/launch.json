@@ -1,0 +1,9 @@
+{
+    "configurations": [
+        {
+            "name": "fvm run",
+            "type": "dart",
+            "request": "launch",
+        },
+    ]
+}
