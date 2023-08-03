@@ -32,7 +32,15 @@ class _HomePageState extends State<HomePage> {
                 const LiquidButton(),
                 const SizedBox(height: 30),
                 Text('Signalization is turned ${provider.isOn ? 'ON' : 'OFF'}',
-                    style: Theme.of(context).textTheme.headlineSmall),
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold)),
+                provider.isOn
+                    ? Text("Your phone is safe",
+                        style: Theme.of(context).textTheme.bodyMedium)
+                    : Text('Tap to turn it on',
+                        style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
           ),
