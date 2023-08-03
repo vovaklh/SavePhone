@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:save_phone/widgets/liquid_button.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -17,7 +18,16 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         title: Text(widget.title),
       ),
-      body: Center(),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            LiquidButton(),
+            SizedBox(height: 30),
+            Text("Signalization is off"),
+          ],
+        ),
+      ),
     );
   }
 }
