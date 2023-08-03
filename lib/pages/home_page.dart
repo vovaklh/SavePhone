@@ -30,16 +30,17 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const LiquidButton(),
-                const SizedBox(height: 30),
+                const SizedBox(height: 60),
                 Text('Signalization is turned ${provider.isOn ? 'ON' : 'OFF'}',
                     style: Theme.of(context)
                         .textTheme
                         .headlineSmall
                         ?.copyWith(fontWeight: FontWeight.bold)),
                 provider.isOn
-                    ? Text("Your phone is safe",
+                    ? Text(
+                        "Your phone is safe. You'll hear an alarm if it's moved",
                         style: Theme.of(context).textTheme.bodyMedium)
-                    : Text('Tap to turn it on',
+                    : Text('Tap to prevent theft',
                         style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
