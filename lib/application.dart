@@ -7,11 +7,8 @@ class SavePhoneApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Save Phone',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 16, 64, 104),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF104068)),
         useMaterial3: true,
       ),
       home: const HomePage(title: 'Save Phone'),
