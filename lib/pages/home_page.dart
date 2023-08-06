@@ -19,23 +19,18 @@ class _HomePageState extends State<HomePage> {
 
   void _playAlarm() async {
     final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.speech());
+    await session.configure(const AudioSessionConfiguration.music());
 
     try {
+      final asu = AudioSource.asset(
+        'assets/audio/alarm.mp3',
+        tag: const MediaItem(id: 'assets/audio/alarm.mp3', title: 'Alarm'),
+      );
+
       await _player.setAudioSource(
-        ClippingAudioSource(
-          start: const Duration(seconds: 60),
-          end: const Duration(seconds: 90),
-          child: AudioSource.uri(Uri.parse(
-              "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3")),
-          tag: MediaItem(
-            id: '0',
-            album: "Science Friday",
-            title: "A Salute To Head-Scratching Science (30 seconds)",
-            artUri: Uri.parse(
-                "https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
-          ),
-        ),
+        asu,
+        initialPosition: const Duration(seconds: 0),
+        preload: true,
       );
     } catch (e) {
       print("Error loading audio source: $e");
@@ -56,6 +51,8 @@ class _HomePageState extends State<HomePage> {
       builder: (context, isButtonOn, child) {
         if (isButtonOn) {
           _playAlarm();
+        } else {
+          _player.stop();
         }
         return Scaffold(
           appBar: AppBar(
