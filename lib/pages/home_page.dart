@@ -17,25 +17,43 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final AudioPlayer _player = AudioPlayer();
 
-  void _playAlarm() async {
+  final alarmSound = AudioSource.uri(
+    Uri.parse("asset:///assets/audio/alarm2.mp3"),
+    tag: MediaItem(
+      id: '0',
+      album: "Public Domain",
+      title: "Alarm",
+      artUri: Uri.parse(
+          "https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
+    ),
+  );
+
+  void _playAlarm() async => _player.play();
+
+  Future<void> _initAudioPlayer() async {
     final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.music());
+    await session.configure(const AudioSessionConfiguration.speech());
+
+    // Listen to errors during playback.
+    _player.playbackEventStream.listen((event) {},
+        onError: (Object e, StackTrace stackTrace) {
+      debugPrint('A stream error occurred: $e');
+    });
 
     try {
-      final asu = AudioSource.asset(
-        'assets/audio/alarm.mp3',
-        tag: const MediaItem(id: 'assets/audio/alarm.mp3', title: 'Alarm'),
-      );
-
-      await _player.setAudioSource(
-        asu,
-        initialPosition: const Duration(seconds: 0),
-        preload: true,
-      );
-    } catch (e) {
-      print("Error loading audio source: $e");
+      await _player.setAudioSource(alarmSound,
+          initialPosition: const Duration(seconds: 0), preload: true);
+    } catch (e, stackTrace) {
+      debugPrint("Error: $e");
+      debugPrint(stackTrace as String);
     }
-    _player.play();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _initAudioPlayer();
   }
 
   @override
