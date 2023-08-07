@@ -69,23 +69,18 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: LiquidButtonNotifier.isOn,
-      builder: (context, isButtonOn, child) {
-        if (isButtonOn) {
-          _playAlarm();
-        } else {
-          _player.stop();
-        }
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: context.colorScheme.inversePrimary,
-            centerTitle: true,
-            title: Text(widget.title),
-          ),
-          body: Container(
-            alignment: Alignment.center,
-            child: Column(
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: context.colorScheme.inversePrimary,
+        centerTitle: true,
+        title: Text(widget.title),
+      ),
+      body: Container(
+        alignment: Alignment.center,
+        child: ValueListenableBuilder(
+          valueListenable: LiquidButtonNotifier.isOn,
+          builder: (context, isButtonOn, child) {
+            return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const LiquidButton(),
@@ -105,10 +100,10 @@ class _HomePageState extends State<HomePage> {
                         style: context.textTheme.bodyMedium,
                       ),
               ],
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }
