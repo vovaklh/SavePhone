@@ -19,16 +19,8 @@ class _HomePageState extends State<HomePage> {
 
   final alarmSound = AudioSource.uri(
     Uri.parse("asset:///assets/audio/alarm2.mp3"),
-    tag: MediaItem(
-      id: '0',
-      album: "Public Domain",
-      title: "Alarm",
-      artUri: Uri.parse(
-          "https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
-    ),
+    tag: const MediaItem(id: '0', title: "Alarm"),
   );
-
-  void _playAlarm() async => _player.play();
 
   Future<void> _initAudioPlayer() async {
     final session = await AudioSession.instance;
@@ -36,7 +28,6 @@ class _HomePageState extends State<HomePage> {
 
     await _player.setLoopMode(LoopMode.one);
 
-    // Listen to errors during playback.
     _player.playbackEventStream.listen((event) {},
         onError: (Object e, StackTrace stackTrace) {
       debugPrint('A stream error occurred: $e');
@@ -57,7 +48,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-
     _initAudioPlayer();
   }
 
@@ -80,6 +70,11 @@ class _HomePageState extends State<HomePage> {
         child: ValueListenableBuilder(
           valueListenable: LiquidButtonNotifier.isOn,
           builder: (context, isButtonOn, child) {
+            if (isButtonOn) {
+              _player.play();
+            } else {
+              _player.pause();
+            }
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
