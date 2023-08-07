@@ -32,7 +32,9 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _initAudioPlayer() async {
     final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.speech());
+    await session.configure(const AudioSessionConfiguration.music());
+
+    await _player.setLoopMode(LoopMode.one);
 
     // Listen to errors during playback.
     _player.playbackEventStream.listen((event) {},
@@ -41,8 +43,11 @@ class _HomePageState extends State<HomePage> {
     });
 
     try {
-      await _player.setAudioSource(alarmSound,
-          initialPosition: const Duration(seconds: 0), preload: true);
+      await _player.setAudioSource(
+        alarmSound,
+        initialPosition: const Duration(seconds: 0),
+        preload: true,
+      );
     } catch (e, stackTrace) {
       debugPrint("Error: $e");
       debugPrint(stackTrace as String);
