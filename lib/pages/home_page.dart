@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:save_phone/utils/extensions/build_context_ext.dart';
 import 'package:save_phone/widgets/liquid_button.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -16,6 +19,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final AudioPlayer _player = AudioPlayer();
+  final _streamSubscriptions = <StreamSubscription<dynamic>>[];
+  bool _isMoving = false;
 
   final alarmSound = AudioSource.asset(
     "assets/audio/alarm2.mp3",
@@ -44,6 +49,49 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _initAudioPlayer();
+
+    _streamSubscriptions.add(
+      accelerometerEvents.listen(
+        (AccelerometerEvent event) {
+          setState(() {
+            _isMoving = event.x.abs() > 1 || event.y.abs() > 1;
+          });
+        },
+        onError: (e) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return const AlertDialog(
+                  title: Text("Sensor Not Found"),
+                  content: Text(
+                      "It seems that your device doesn't support Gyroscope Sensor"),
+                );
+              });
+        },
+        cancelOnError: true,
+      ),
+    );
+    _streamSubscriptions.add(
+      gyroscopeEvents.listen(
+        (GyroscopeEvent event) {
+          setState(() {
+            _isMoving = event.x.abs() > 1 || event.y.abs() > 1;
+          });
+        },
+        onError: (e) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return const AlertDialog(
+                  title: Text("Sensor Not Found"),
+                  content: Text(
+                      "It seems that your device doesn't support Gyroscope Sensor"),
+                );
+              });
+        },
+        cancelOnError: true,
+      ),
+    );
   }
 
   @override
@@ -65,7 +113,7 @@ class _HomePageState extends State<HomePage> {
         child: ValueListenableBuilder(
           valueListenable: LiquidButtonNotifier.isOn,
           builder: (context, isButtonOn, child) {
-            if (isButtonOn) {
+            if (_isMoving && isButtonOn) {
               _player.play();
             } else {
               _player.pause();
