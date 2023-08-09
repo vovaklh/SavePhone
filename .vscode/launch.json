@@ -5,11 +5,5 @@
             "type": "dart",
             "request": "launch",
         },
-        {
-            "name": "fvm debug run",
-            "type": "dart",
-            "flutterMode": "debug",
-            "request": "launch",
-        },
     ]
 }

@@ -17,8 +17,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final AudioPlayer _player = AudioPlayer();
 
-  final alarmSound = AudioSource.uri(
-    Uri.parse("asset:///assets/audio/alarm2.mp3"),
+  final alarmSound = AudioSource.asset(
+    "assets/audio/alarm2.mp3",
     tag: const MediaItem(id: '0', title: "Alarm"),
   );
 
@@ -27,11 +27,6 @@ class _HomePageState extends State<HomePage> {
     await session.configure(const AudioSessionConfiguration.music());
 
     await _player.setLoopMode(LoopMode.one);
-
-    _player.playbackEventStream.listen((event) {},
-        onError: (Object e, StackTrace stackTrace) {
-      debugPrint('A stream error occurred: $e');
-    });
 
     try {
       await _player.setAudioSource(
