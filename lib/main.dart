@@ -8,7 +8,7 @@ void main() async {
   await JustAudioBackground.init(
     androidNotificationChannelId: 'com.example.save_phone',
     androidNotificationChannelName: 'Audio playback',
-    androidNotificationOngoing: true,
+    androidNotificationOngoing: false,
   );
 
   runApp(const SavePhoneApp());

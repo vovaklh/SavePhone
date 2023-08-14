@@ -19,8 +19,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final AudioPlayer _player = AudioPlayer();
-  final _streamSubscriptions = <StreamSubscription<dynamic>>[];
-  bool _isMoving = false;
+
+  bool _isMovingSuspicious = false;
 
   final alarmSound = AudioSource.asset(
     "assets/audio/alarm2.mp3",
@@ -31,6 +31,7 @@ class _HomePageState extends State<HomePage> {
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.music());
 
+    await _player.setVolume(100);
     await _player.setLoopMode(LoopMode.one);
 
     try {
@@ -45,53 +46,68 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _startSensorMonitoring() {
+    const double movementThreshold = 30.0;
+    const int numberOfSamples = 5;
+
+    List<double> accelerometerMagnitudes = [];
+    List<double> gyroscopeMagnitudes = [];
+
+    // Initialize Kalman filter parameters
+    double estimatedMagnitude = 0.0; // Initial estimate
+    double estimatedError = 1.0; // Initial error estimate
+    double processNoise = 0.1; // Process noise
+    double measurementNoise = 0.5; // Measurement noise
+
+    accelerometerEvents.listen((AccelerometerEvent accelEvent) {
+      // Calculate magnitude and apply Kalman filter
+      double accelMagnitude =
+          accelEvent.x.abs() + accelEvent.y.abs() + accelEvent.z.abs();
+
+      double kalmanGain = estimatedError / (estimatedError + measurementNoise);
+      estimatedMagnitude = estimatedMagnitude +
+          kalmanGain * (accelMagnitude - estimatedMagnitude);
+      estimatedError = (1 - kalmanGain) * estimatedError + processNoise;
+
+      debugPrint("Estimated Magnitude: $estimatedMagnitude");
+      accelerometerMagnitudes.add(estimatedMagnitude);
+
+      if (accelerometerMagnitudes.length >= numberOfSamples) {
+        double avgAccelMagnitude =
+            accelerometerMagnitudes.reduce((a, b) => a + b) /
+                accelerometerMagnitudes.length;
+
+        accelerometerMagnitudes.clear();
+
+        gyroscopeEvents.listen((GyroscopeEvent gyroEvent) async {
+          double gyroMagnitude =
+              gyroEvent.x.abs() + gyroEvent.y.abs() + gyroEvent.z.abs();
+          gyroscopeMagnitudes.add(gyroMagnitude);
+
+          if (gyroscopeMagnitudes.length >= numberOfSamples) {
+            double avgGyroMagnitude =
+                gyroscopeMagnitudes.reduce((a, b) => a + b) /
+                    gyroscopeMagnitudes.length;
+            gyroscopeMagnitudes.clear();
+
+            if (avgAccelMagnitude > movementThreshold ||
+                avgGyroMagnitude > movementThreshold) {
+              setState(() => _isMovingSuspicious = true);
+            } else if (avgAccelMagnitude < movementThreshold &&
+                avgGyroMagnitude < movementThreshold) {
+              setState(() => _isMovingSuspicious = false);
+            }
+          }
+        });
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _initAudioPlayer();
-
-    _streamSubscriptions.add(
-      accelerometerEvents.listen(
-        (AccelerometerEvent event) {
-          setState(() {
-            _isMoving = event.x.abs() > 1 || event.y.abs() > 1;
-          });
-        },
-        onError: (e) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return const AlertDialog(
-                  title: Text("Sensor Not Found"),
-                  content: Text(
-                      "It seems that your device doesn't support Gyroscope Sensor"),
-                );
-              });
-        },
-        cancelOnError: true,
-      ),
-    );
-    _streamSubscriptions.add(
-      gyroscopeEvents.listen(
-        (GyroscopeEvent event) {
-          setState(() {
-            _isMoving = event.x.abs() > 1 || event.y.abs() > 1;
-          });
-        },
-        onError: (e) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return const AlertDialog(
-                  title: Text("Sensor Not Found"),
-                  content: Text(
-                      "It seems that your device doesn't support Gyroscope Sensor"),
-                );
-              });
-        },
-        cancelOnError: true,
-      ),
-    );
+    _startSensorMonitoring();
   }
 
   @override
@@ -113,7 +129,7 @@ class _HomePageState extends State<HomePage> {
         child: ValueListenableBuilder(
           valueListenable: LiquidButtonNotifier.isOn,
           builder: (context, isButtonOn, child) {
-            if (_isMoving && isButtonOn) {
+            if (_isMovingSuspicious && isButtonOn) {
               _player.play();
             } else {
               _player.pause();
