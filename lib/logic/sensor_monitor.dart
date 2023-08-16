@@ -8,7 +8,7 @@ import 'accelerometer_variation.dart';
 import 'variation_calculator.dart';
 
 class SensorMonitor {
-  final double _variationTreshold = 2.2;
+  final double _variationTreshold = 2.0;
   final int _bufferSize = 10;
   final VariationCalculator _variationCalculator = VariationCalculator();
   final List<AccelerometerEvent> _buffer = [];
@@ -62,7 +62,7 @@ class SensorMonitor {
 
   void startMonitoring() {
     _subscription ??= accelerometerEvents
-        .interval(const Duration(milliseconds: 60))
+        .interval(const Duration(milliseconds: 10))
         .listen(_processNewPoint);
   }
 
