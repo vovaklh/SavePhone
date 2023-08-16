@@ -19,7 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final AudioPlayerSettings _audioPlayerSettings;
-  late SensorMonitor _sensorMonitor;
+  late final SensorMonitor _sensorMonitor;
 
   final AudioPlayer _player = AudioPlayer();
 
