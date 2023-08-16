@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
           builder: (context, isButtonOn, child) {
             if (_isMovementSuspicious && isButtonOn) {
               _player.play();
-            } else {
+            } else if (!isButtonOn) {
               _player.pause();
             }
             return Column(
@@ -91,11 +91,11 @@ class _HomePageState extends State<HomePage> {
 }
 
 class AudioPlayerSettings {
+  static const String alarmSoundPath = "assets/audio/alarm2.mp3";
+
   final AudioPlayer player;
 
   AudioPlayerSettings(this.player);
-
-  static const String alarmSoundPath = "assets/audio/alarm2.mp3";
 
   Future<void> initAudioPlayer() async {
     final session = await AudioSession.instance;
