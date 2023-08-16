@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:save_phone/utils/extensions/build_context_ext.dart';
 import 'package:save_phone/widgets/liquid_button.dart';
+
+import '../logic/audio_player_settings.dart';
+import '../logic/sensor_monitor.dart';
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -12,6 +16,38 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final SensorMonitor _sensorMonitor = SensorMonitor();
+  final AudioPlayer _player = AudioPlayer();
+
+  void _isButtonTapped(bool isButtonOn) {
+    if (isButtonOn) {
+      _sensorMonitor.startMonitoring();
+    } else {
+      _player.pause();
+      _sensorMonitor.stopMinitoring();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _onStart();
+  }
+
+  void _onStart() async {
+    final AudioPlayerSettings audioPlayerSettings =
+        AudioPlayerSettings(_player);
+    await audioPlayerSettings.initAudioPlayer();
+    _sensorMonitor.addListener(_player.play);
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +64,9 @@ class _HomePageState extends State<HomePage> {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const LiquidButton(),
+                LiquidButton(
+                  onTapped: _isButtonTapped,
+                ),
                 const SizedBox(height: 60),
                 Text(
                   'Signalization is turned ${isButtonOn ? 'ON' : 'OFF'}',
