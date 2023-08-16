@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:save_phone/utils/extensions/build_context_ext.dart';
 
 class LiquidButton extends StatefulWidget {
-  const LiquidButton({super.key});
+  final Function(bool) onTapped;
+
+  const LiquidButton({
+    super.key,
+    required this.onTapped,
+  });
 
   @override
   State<LiquidButton> createState() => _LiquidButtonState();
@@ -17,6 +22,7 @@ class _LiquidButtonState extends State<LiquidButton>
     bool isButtonOn = LiquidButtonNotifier.isOn.value;
     LiquidButtonNotifier.isOn.value = !isButtonOn;
     _handleAnimation(!isButtonOn);
+    widget.onTapped(!isButtonOn);
   }
 
   void _handleAnimation(bool isOn) async {
