@@ -18,38 +18,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final AudioPlayer _player = AudioPlayer();
+  late final AudioPlayerSettings _audioPlayerSettings;
   late SensorMonitor _sensorMonitor;
+
+  final AudioPlayer _player = AudioPlayer();
+
   bool _isMovingSuspicious = false;
-
-  final alarmSound = AudioSource.asset(
-    "assets/audio/alarm2.mp3",
-    tag: const MediaItem(id: '0', title: "Alarm"),
-  );
-
-  Future<void> _initAudioPlayer() async {
-    final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.music());
-
-    await _player.setVolume(100);
-    await _player.setLoopMode(LoopMode.one);
-
-    try {
-      await _player.setAudioSource(
-        alarmSound,
-        initialPosition: const Duration(seconds: 0),
-        preload: true,
-      );
-    } catch (e, stackTrace) {
-      debugPrint("Error: $e");
-      debugPrint(stackTrace as String);
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    _initAudioPlayer();
+
+    _audioPlayerSettings = AudioPlayerSettings(_player);
+    _audioPlayerSettings.initAudioPlayer();
+
     _sensorMonitor = SensorMonitor((isSuspicious) {
       setState(() => _isMovingSuspicious = isSuspicious);
     });
@@ -105,6 +87,35 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+}
+
+class AudioPlayerSettings {
+  final AudioPlayer player;
+
+  AudioPlayerSettings(this.player);
+
+  static const String alarmSoundPath = "assets/audio/alarm2.mp3";
+
+  Future<void> initAudioPlayer() async {
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.music());
+
+    await player.setLoopMode(LoopMode.one);
+
+    try {
+      await player.setAudioSource(
+        AudioSource.asset(
+          alarmSoundPath,
+          tag: const MediaItem(id: '0', title: "Alarm"),
+        ),
+        initialPosition: const Duration(seconds: 0),
+        preload: true,
+      );
+    } catch (e, stackTrace) {
+      debugPrint("Error: $e");
+      debugPrint(stackTrace as String);
+    }
   }
 }
 
