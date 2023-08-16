@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
 
   final AudioPlayer _player = AudioPlayer();
 
-  bool _isMovingSuspicious = false;
+  bool _isMovementSuspicious = false;
 
   @override
   void initState() {
@@ -33,9 +33,9 @@ class _HomePageState extends State<HomePage> {
     _audioPlayerSettings.initAudioPlayer();
 
     _sensorMonitor = SensorMonitor((isSuspicious) {
-      setState(() => _isMovingSuspicious = isSuspicious);
+      setState(() => _isMovementSuspicious = isSuspicious);
     });
-    _sensorMonitor.startSensorMonitoring();
+    _sensorMonitor.startMonitoring();
   }
 
   @override
@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
         child: ValueListenableBuilder(
           valueListenable: LiquidButtonNotifier.isOn,
           builder: (context, isButtonOn, child) {
-            if (_isMovingSuspicious && isButtonOn) {
+            if (_isMovementSuspicious && isButtonOn) {
               _player.play();
             } else {
               _player.pause();
@@ -124,7 +124,7 @@ class SensorMonitor {
 
   SensorMonitor(this.onSuspiciousMovement);
 
-  void startSensorMonitoring() {
+  void startMonitoring() {
     const double movementThreshold = 30.0;
     const int numberOfSamples = 5;
 
