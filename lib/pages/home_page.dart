@@ -19,7 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final AudioPlayer _player = AudioPlayer();
-
+  late SensorMonitor _sensorMonitor;
   bool _isMovingSuspicious = false;
 
   final alarmSound = AudioSource.asset(
@@ -46,68 +46,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _startSensorMonitoring() {
-    const double movementThreshold = 30.0;
-    const int numberOfSamples = 5;
-
-    List<double> accelerometerMagnitudes = [];
-    List<double> gyroscopeMagnitudes = [];
-
-    // Initialize Kalman filter parameters
-    double estimatedMagnitude = 0.0; // Initial estimate
-    double estimatedError = 1.0; // Initial error estimate
-    double processNoise = 0.1; // Process noise
-    double measurementNoise = 0.5; // Measurement noise
-
-    accelerometerEvents.listen((AccelerometerEvent accelEvent) {
-      // Calculate magnitude and apply Kalman filter
-      double accelMagnitude =
-          accelEvent.x.abs() + accelEvent.y.abs() + accelEvent.z.abs();
-
-      double kalmanGain = estimatedError / (estimatedError + measurementNoise);
-      estimatedMagnitude = estimatedMagnitude +
-          kalmanGain * (accelMagnitude - estimatedMagnitude);
-      estimatedError = (1 - kalmanGain) * estimatedError + processNoise;
-
-      debugPrint("Estimated Magnitude: $estimatedMagnitude");
-      accelerometerMagnitudes.add(estimatedMagnitude);
-
-      if (accelerometerMagnitudes.length >= numberOfSamples) {
-        double avgAccelMagnitude =
-            accelerometerMagnitudes.reduce((a, b) => a + b) /
-                accelerometerMagnitudes.length;
-
-        accelerometerMagnitudes.clear();
-
-        gyroscopeEvents.listen((GyroscopeEvent gyroEvent) async {
-          double gyroMagnitude =
-              gyroEvent.x.abs() + gyroEvent.y.abs() + gyroEvent.z.abs();
-          gyroscopeMagnitudes.add(gyroMagnitude);
-
-          if (gyroscopeMagnitudes.length >= numberOfSamples) {
-            double avgGyroMagnitude =
-                gyroscopeMagnitudes.reduce((a, b) => a + b) /
-                    gyroscopeMagnitudes.length;
-            gyroscopeMagnitudes.clear();
-
-            if (avgAccelMagnitude > movementThreshold ||
-                avgGyroMagnitude > movementThreshold) {
-              setState(() => _isMovingSuspicious = true);
-            } else if (avgAccelMagnitude < movementThreshold &&
-                avgGyroMagnitude < movementThreshold) {
-              setState(() => _isMovingSuspicious = false);
-            }
-          }
-        });
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
     _initAudioPlayer();
-    _startSensorMonitoring();
+    _sensorMonitor = SensorMonitor((isSuspicious) {
+      setState(() => _isMovingSuspicious = isSuspicious);
+    });
+    _sensorMonitor.startSensorMonitoring();
   }
 
   @override
@@ -158,6 +104,74 @@ class _HomePageState extends State<HomePage> {
           },
         ),
       ),
+    );
+  }
+}
+
+class SensorMonitor {
+  final Function(bool) onSuspiciousMovement;
+
+  SensorMonitor(this.onSuspiciousMovement);
+
+  void startSensorMonitoring() {
+    const double movementThreshold = 30.0;
+    const int numberOfSamples = 5;
+
+    List<double> accelerometerMagnitudes = [];
+    List<double> gyroscopeMagnitudes = [];
+
+    // Initialize Kalman filter parameters
+    double estimatedMagnitude = 0.0; // Initial estimate
+    double estimatedError = 1.0; // Initial error estimate
+    double processNoise = 0.1; // Process noise
+    double measurementNoise = 0.5; // Measurement noise
+
+    accelerometerEvents.listen(
+      (AccelerometerEvent accelEvent) {
+        // Calculate magnitude and apply Kalman filter
+        double accelMagnitude =
+            accelEvent.x.abs() + accelEvent.y.abs() + accelEvent.z.abs();
+
+        double kalmanGain =
+            estimatedError / (estimatedError + measurementNoise);
+        estimatedMagnitude = estimatedMagnitude +
+            kalmanGain * (accelMagnitude - estimatedMagnitude);
+        estimatedError = (1 - kalmanGain) * estimatedError + processNoise;
+
+        debugPrint("Estimated Magnitude: $estimatedMagnitude");
+        accelerometerMagnitudes.add(estimatedMagnitude);
+
+        if (accelerometerMagnitudes.length >= numberOfSamples) {
+          double avgAccelMagnitude =
+              accelerometerMagnitudes.reduce((a, b) => a + b) /
+                  accelerometerMagnitudes.length;
+
+          accelerometerMagnitudes.clear();
+
+          gyroscopeEvents.listen(
+            (GyroscopeEvent gyroEvent) async {
+              double gyroMagnitude =
+                  gyroEvent.x.abs() + gyroEvent.y.abs() + gyroEvent.z.abs();
+              gyroscopeMagnitudes.add(gyroMagnitude);
+
+              if (gyroscopeMagnitudes.length >= numberOfSamples) {
+                double avgGyroMagnitude =
+                    gyroscopeMagnitudes.reduce((a, b) => a + b) /
+                        gyroscopeMagnitudes.length;
+                gyroscopeMagnitudes.clear();
+
+                if (avgAccelMagnitude > movementThreshold ||
+                    avgGyroMagnitude > movementThreshold) {
+                  return onSuspiciousMovement(true);
+                } else if (avgAccelMagnitude < movementThreshold &&
+                    avgGyroMagnitude < movementThreshold) {
+                  return onSuspiciousMovement(false);
+                }
+              }
+            },
+          );
+        }
+      },
     );
   }
 }
