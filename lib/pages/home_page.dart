@@ -125,8 +125,8 @@ class SensorMonitor {
   SensorMonitor(this.onSuspiciousMovement);
 
   void startMonitoring() {
-    const double movementThreshold = 13.0;
-    const int numberOfSamples = 15;
+    const double movementThreshold = 12.0;
+    const int numberOfSamples = 2;
 
     List<double> accelerometerMagnitudes = [];
     List<double> gyroscopeMagnitudes = [];
